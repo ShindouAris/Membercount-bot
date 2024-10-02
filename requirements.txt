@@ -1,0 +1,5 @@
+disnake
+colorama
+python-dotenv
+psutil
+humanize
