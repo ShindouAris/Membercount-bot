@@ -14,6 +14,7 @@ class ClientUser(InteractionBot):
     
     def __init__(self, *args, intents, command_sync_flag, **kwargs) -> None:
         super().__init__(*args, **kwargs, intents=intents, command_sync_flags=command_sync_flag)
+        self.logger = logger
 
     async def on_ready(self):
         logger.info(f"Logged in as {self.user.name} - {self.user.id}")
@@ -21,7 +22,6 @@ class ClientUser(InteractionBot):
     async def close(self):
         logger.warning("Đã nhận tín hiệu ngắt bot")
         await super().close()
-    
 
     def load_modules(self):
 
@@ -57,7 +57,7 @@ def load():
     intents.members = True
     intents.guilds = True
     intents.presences = True
-    member_cache_Flag = MemberCacheFlags()
+    member_cache_Flag = MemberCacheFlags() # WARNING: NHIỀU GUILD == NHIỀU RAM
     member_cache_Flag.joined = True
     member_cache_Flag.voice = False
         
