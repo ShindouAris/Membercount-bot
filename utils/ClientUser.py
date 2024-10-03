@@ -1,84 +1,81 @@
 from __future__ import annotations
 
-import os
-import disnake
-from colorama import *
-from disnake.ext import commands
+from os import walk, path, environ
+from disnake import Intents, MemberCacheFlags
+from disnake.ext . commands import CommandSyncFlags, InteractionBot, ExtensionAlreadyLoaded, ExtensionNotLoaded
 from dotenv import load_dotenv
-import logging
+from logging import getLogger
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)       
+logger = getLogger(__name__)
 
-class ClientUser(commands.InteractionBot):
+class ClientUser(InteractionBot):
     
     def __init__(self, *args, intents, command_sync_flag, **kwargs) -> None:
         super().__init__(*args, **kwargs, intents=intents, command_sync_flags=command_sync_flag)
-        self.uptime = disnake.utils.utcnow()
 
     async def on_ready(self):
         logger.info(f"Logged in as {self.user.name} - {self.user.id}")
+
+    async def close(self):
+        logger.warning("Đã nhận tín hiệu ngắt bot")
+        await super().close()
     
 
     def load_modules(self):
 
         modules_dir = "Module"
-
-        load_status = {
-            "reloaded": [],
-            "loaded": []
-        }
         
-        for item in os.walk(modules_dir):
+        for item in walk(modules_dir):
             files = filter(lambda f: f.endswith('.py'), item[-1])
             for file in files:
-                filename, _ = os.path.splitext(file)
-                module_filename = os.path.join(modules_dir, filename).replace('\\', '.').replace('/', '.')
+                filename, _ = path.splitext(file)
+                module_filename = path.join(modules_dir, filename).replace('\\', '.').replace('/', '.')
                 try:
                     self.reload_extension(module_filename)
-                    logger.info(f'{Fore.GREEN} [ ✅ ] Module {file} Đã tải lên thành công{Style.RESET_ALL}')
-                except (commands.ExtensionAlreadyLoaded, commands.ExtensionNotLoaded):
+                    logger.info(f'Module {file} Đã tải lên thành công')
+                except (ExtensionAlreadyLoaded, ExtensionNotLoaded):
                     try:
                         self.load_extension(module_filename)
-                        logger.info(f'{Fore.GREEN} [ ✅ ] Module {file} Đã tải lên thành công{Style.RESET_ALL}')
+                        logger.info(f'Module {file} Đã tải lên thành công')
                     except Exception as e:
-                        logger.error(f"[❌] Đã có lỗi xảy ra với Module {file}: Lỗi: {repr(e)}")
+                        logger.error(f"Đã có lỗi xảy ra với Module {file}: Lỗi: {repr(e)}")
                         continue
                 except Exception as e:
-                    logger.error(f"[❌] Đã có lỗi xảy ra với Module {file}: Lỗi: {repr(e)}")
+                    logger.error(f"Đã có lỗi xảy ra với Module {file}: Lỗi: {repr(e)}")
                     continue
-                
-        return load_status
+
 
 def load():
-        logger.info("Booting Client....")
         
-        DISCORD_TOKEN = os.environ.get("TOKEN")
+    logger.info("Booting Client....")
+    
+    DISCORD_TOKEN = environ.get("TOKEN")
+    
+    intents = Intents()
+    intents.members = True
+    intents.guilds = True
+    intents.presences = True
+    member_cache_Flag = MemberCacheFlags()
+    member_cache_Flag.joined = True
+    member_cache_Flag.voice = False
         
-        intents = disnake.Intents()
-        intents.members = True
-        intents.voice_states = True
-        intents.guilds = True
-        intents.presences = True
-        member_cache_Flag = disnake.MemberCacheFlags.all()
-           
-        sync_cfg = True
-        command_sync_config = commands.CommandSyncFlags(
-                            allow_command_deletion=sync_cfg,
-                            sync_commands=sync_cfg,
-                            sync_commands_debug=sync_cfg,
-                            sync_global_commands=sync_cfg,
-                            sync_guild_commands=sync_cfg
-                        )  
-        
-        bot  = ClientUser(intents=intents, command_sync_flag=command_sync_config, member_cache_flags=member_cache_Flag)
+    sync_cfg = True
+    command_sync_config = CommandSyncFlags(
+                        allow_command_deletion=sync_cfg,
+                        sync_commands=sync_cfg,
+                        sync_commands_debug=sync_cfg,
+                        sync_global_commands=sync_cfg,
+                        sync_guild_commands=sync_cfg
+                    )  
+    
+    bot  = ClientUser(intents=intents, command_sync_flag=command_sync_config, member_cache_flags=member_cache_Flag)
 
-        bot.load_modules()
-        print("-"*40)
-        
-        try:
-            bot.run(DISCORD_TOKEN)
-        except Exception as e:
-            if  "LoginFailure" in str(e):
-                logger.error("An Error occured:", repr(e))
+    bot.load_modules()
+    print("-"*40)
+    
+    try:
+        bot.run(DISCORD_TOKEN)
+    except Exception as e:
+        logger.error("An Error occured:", repr(e))

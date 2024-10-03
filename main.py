@@ -1,5 +1,5 @@
 from utils.ClientUser import load
-import gc
+from gc import collect
 import utils.logger
-gc.collect()
+collect()
 load()
