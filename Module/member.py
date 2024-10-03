@@ -63,13 +63,13 @@ class MemberCount(Cog):
             online, dnd, idle = self.count_member()
             try:
                 await self.rename_channel(ONLINE_CHANNEL, ONLINE_TEXT.format(online=online, all=len(self.all())))
-                logger.debug("START SYNC CHANNEL %s", ONLINE_CHANNEL)
+                logger.info("START SYNC CHANNEL %s", ONLINE_CHANNEL)
                 await sleep(3) # Sleep để tránh ratelimit
                 await self.rename_channel(IDLE_CHANNEL, IDLE_TEXT.format(idle=idle))
-                logger.debug("START SYNC CHANNEL %s", IDLE_CHANNEL)
+                logger.info("START SYNC CHANNEL %s", IDLE_CHANNEL)
                 await sleep(3) # Sleep để tránh ratelimit
                 await self.rename_channel(DND_CHANNEL, DND_TEXT.format(dnd=dnd))
-                logger.debug("START SYNC CHANNEL %s", DND_CHANNEL)
+                logger.info("START SYNC CHANNEL %s", DND_CHANNEL)
             except Forbidden or HTTPException as e:
                 logger.error(e)
                 self.sync_tasks.cancel("Hủy task đếm member vì đã xảy ra sự cố")
@@ -77,9 +77,10 @@ class MemberCount(Cog):
                 logger.error(e)
 
     async def run_loop(self):
-        logger.info("Đã nhận tín hiệu khởi động vòng lặp, Thời gian chờ mỗi lần sync: %s giây", SLEEP_TIME)
-        await sleep(SLEEP_TIME)
-        await self.sync_name()
+        while True:
+            logger.info("Đã nhận tín hiệu khởi động vòng lặp, Thời gian chờ mỗi lần sync: %s giây", SLEEP_TIME)
+            await sleep(SLEEP_TIME)
+            await self.sync_name()
 
     async def initalize(self):
         await sleep(5)
