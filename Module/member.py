@@ -15,7 +15,7 @@ ONLINE_TEXT = "🟢・online: {online} / {all}"
 IDLE_TEXT = "🌙・idle: {idle}"
 DND_TEXT = "⛔・dnd: {dnd}"
 
-SLEEP_TIME = 600
+SLEEP_TIME = 3600
 
 class MemberCount(Cog):
     def __init__(self, bot: ClientUser):
