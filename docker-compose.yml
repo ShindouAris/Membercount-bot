@@ -1,0 +1,13 @@
+services:
+  membercount-bot:
+    build: .
+    container_name: membercount-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+#    volumes:
+#      - ./.logs:/app/.logs
+
+networks:
+  default:
+    enable_ipv6: true
